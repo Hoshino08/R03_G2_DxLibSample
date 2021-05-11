@@ -1,6 +1,8 @@
 //ヘッダーファイルの読み込み
 #include "DxLib.h"	//DxLibを使うときは必要
 
+#include "keyboard.h"
+
 //マクロ定義
 #define GAME_TITLE	"ゲームタイトル"	//ゲームタイトル
 #define GAME_WIDTH	1280				//ゲーム画面の幅(ウィドス)
@@ -20,7 +22,7 @@ int WINAPI WinMain(
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	SetOutApplicationLogValidFlag(FALSE); 
+	SetOutApplicationLogValidFlag(FALSE);
 	ChangeWindowMode(TRUE);								//ウィンドウモードに設定
 	SetMainWindowText(GAME_TITLE);						//ウィンドウのタイトルの文字
 	SetGraphMode(GAME_WIDTH, GAME_HEIGHT, GAME_COLOR);	//ウィンドウの解像度を設定
@@ -31,79 +33,56 @@ int WINAPI WinMain(
 	SetWaitVSyncFlag(TRUE);
 	SetAlwaysRunFlag(TRUE);
 
-	//ＤＸライブラリ初期化処理
+	//ＤＸライブラリ初期化処理S
 	if (DxLib_Init() == -1)
 	{
 		// エラーが起きたら直ちに終了
 		return -1;
 	}
 
-	//資格の位置を決める
+	//ダブルバッファリングの有効化
+	SetDownScreen(DX_SOREEN_BACK);
+
+	//円の中心点
 	int X = GAME_WIDTH / 2;
 	int Y = GAME_HEIGHT / 2;
-
-	//四角の大きさを決める
-	int width = 32;
-	int height = 32;
-
-	//円の半径を決める
-	int radius = 100;
-
-	//速度
-	int Speed = 5;
-	int XSpeed = Speed;
-	int YSpeed = Speed;
-
-	SetDrawScreen(DX_SCREEN_BACK);
+	//円の半径
+	int radius = 50;
 
 	//無限ループ
-		while (1)
+	while (1)
+	{
+		if (ProcessMessage() != 0) { break; }	//メッセージを受け取り続ける
+		if (ClearDrawScreen() != 0) { break; }	//画面を消去する
+
+		//キーボード入力の更新
+		AllKeyUpdate();
+
+		//キー入力
+		if (keyDown(KEY_INPUT_UP) == TRUE)
 		{
-			//何かしらキーが押されたとき
-			if (CheckHitKeyAll() != 0)	//0のときに、何かキーが押された
-			{
-				break;	//無限ループを抜ける
-			}
+			Y--;
+		}
 
-			//メッセージを受け取り続ける
-			if (ProcessMessage() != 0)	//-1のとき、エラーやウィンドウが閉じられた
-			{
-				break;	//無限ループを抜ける
-			}
+		if (KeyDown(KEY_INPUT_DOWN) == TRUE)
+		{
+			Y++;
+		}
+		if (keyDown(KEY_INPUT_LEFT) == TRUE)
+		{
+			X--;
+		}
 
-			//画面を消去する
-			if (ClearDrawScreen() != 0) { break; }
+		if (KeyDown(KEY_INPUT_RIGHT) == TRUE)
+		{
+			X++;
+		}
 
-			//四角を描画
-			//DrawBox(
-			//	X, Y, X + width,Y +  height,
-			//	GetColor(255, 0, 0),
-			//	TRUE
-			//);
+		DrawCircle(X, Y, radius, GetColor(255, 255, 0), TRUE);
 
-			//円を描画
-			DrawCircle(
-				X, Y, radius,
-				GetColor(0, 255, 0),
-				FALSE, 5
-			);
-
-			X += XSpeed;
-
-			Y += YSpeed;
-
-			if (X < 0 || X + width > GAME_WIDTH)
-			{
-				XSpeed = -XSpeed;
-			}
-
-			if (Y < 0 || Y + height > GAME_HEIGHT)
-			{
-				YSpeed = -YSpeed;
-			}
-
-			ScreenFlip();
+		ScreenFlip();	//ダブルバッファリングした画像を描画
 	}
+
 
 
 	//ＤＸライブラリ使用の終了処理
