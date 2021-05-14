@@ -40,10 +40,10 @@ VOID AllKeyUpdate(VOID)
 }
 
 /// <summary>
-/// キーを押しているか、キーコードで判断する
+/// キーをクリックしたか、キーコードで判断する
 /// </summary>
 /// <param name="KEY_INPUT">キーコード</param>
-/// <returns>押していたらTRUE</returns>
+/// <returns>クリックしたらTRUE</returns>
 BOOL KeyDown(int KEY_INPUT_)
 {
 	if (keyboard.OldAllKeyState[KEY_INPUT_] != 0)	//以前は押していた

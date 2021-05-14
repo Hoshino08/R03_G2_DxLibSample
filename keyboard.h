@@ -23,5 +23,5 @@ extern KEYBOARD keyboard;
 extern VOID AllKeyUpdate(VOID);
 extern BOOL KeyDown(int KEY_INPUT_);
 extern BOOL KeyUp(int KEY_INPUT_);
-extern BOOL KeyChick(int KEY_INPUT_);
+extern BOOL KeyClick(int KEY_INPUT_);
 extern BOOL KeyDownKeep(int KEY_INPUT_,int millSec);
