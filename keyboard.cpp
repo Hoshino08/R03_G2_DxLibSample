@@ -16,14 +16,14 @@ VOID AllKeyUpdate(VOID)
 	//直前のキー入力をとっておく
 	for (int i = 0; i < KEY_KIND_MAX; i++)
 	{
-		keyboard.OldAllKeyState[i] = keyboard.OldAllKeyState[i];
+		keyboard.OldAllKeyState[i] = keyboard.AllKeyState[i];
 	}
 
 	//すべてのキーの入力状態を得る
 	GetHitKeyStateAll(keyboard.TempKeyState);
 
 	//押されてるキーの時間を更新する
-	for (int i = 0 < KEY_KIND_MAX; i++;)
+	for (int i = 0;i < KEY_KIND_MAX; i++)
 	{
 		//キーコードを押しているとき
 		if (keyboard.TempKeyState[i] != 0)
@@ -61,7 +61,7 @@ BOOL KeyDown(int KEY_INPUT_)
 /// </summary>
 /// <param name="KEY_INPUT">キーコード</param>
 /// <returns>クリックしたらTRUE</returns>
-BOOL KeyDown(int KEY_INPUT_)
+BOOL KeyUp(int KEY_INPUT_)
 {
 	if (
 		keyboard.OldAllKeyState[KEY_INPUT_] != 0	//以前は押していた
@@ -76,6 +76,25 @@ BOOL KeyDown(int KEY_INPUT_)
 	}
 }
 
+/// <summary>
+/// キーを上げているか、キーコードで判断する
+/// </summary>
+/// <param name="KEY_INPUT">キーコード</param>
+/// <returns>クリックしたらTRUE</returns>
+BOOL KeyClick(int KEY_INPUT_)
+{
+	if (
+		keyboard.OldAllKeyState[KEY_INPUT_] != 0	//以前は押していた
+		&& keyboard.AllKeyState[KEY_INPUT_] == 0	//現在は押していない
+		)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
 
 /// <summary>
 /// キーコードを押し続けているか、キーコードで判断する
