@@ -3,13 +3,34 @@
 #include "keyboard.h"	//キーボードの処理
 #include "FPS.h"		//FPSの処理
 
-//
-//
-GAME_SCENE GameScene;
-GAME_SCENE OldGameScene;
-GAME_SCENE NextGameScene;
+//構造体の定義
 
+//キャラクタの構造体
+struct CHARCTOR
+{
+	int handle = -1;	//画像のハンドル（管理番号）
+	char path[255];		//画像の場所（パス）
+	int x;				//X位置
+	int y;				//Y位置
+	int width;			//
+	int height;			//
+
+	int speed = 1;
+
+	RECT coll;				//当たり判定の領域（四角）
+	BOOL IsDraw = FALSE;	//画像が描画できる？
+};
+
+//グローバル変数
 //
+GAME_SCENE GameScene;		//
+GAME_SCENE OldGameScene;	//
+GAME_SCENE NextGameScene;	//
+
+//プレイヤー
+CHARCTOR player;
+
+//画面の切り替え
 BOOL IsFadeOut = FALSE;	//フェードアウト
 BOOL IsFadeIn = FALSE;	//フェードイン
 
@@ -76,14 +97,38 @@ int WINAPI WinMain(
 	//ダブルバッファリングの有効化
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	//円の中心点
-	int X = GAME_WIDTH / 2;
-	int Y = GAME_HEIGHT / 2;
-	//円の半径
-	int radius = 50;
 
 	//最初のシーンは、タイトル画面から
 	GameScene = GAME_SCENE_TITLE;
+
+	//ゲーム全体の初期化
+
+	//
+	strcpyDx(player.path, ".//Image//player.jpg");	//パスのコピー
+	player.handle = LoadGraph(player.path);	//画像の読み込み
+
+	//
+	if (player.handle == -1)
+	{
+		MessageBox(
+			GetMainWindowHandle(),		//メインのウィンドウハンドル
+			player.path,				//メッセージ本文
+			"画像読み込みエラー！",		//メッセージタイトル
+			MB_OK						//ボタン
+		);
+
+		DxLib_End();	//強制終了
+		return-1;		//エラー終了
+	}
+
+	//プレイヤーの初期化
+	GetGraphSize(player.handle, &player.width, &player.height);
+
+	//
+	player.x = GAME_WIDTH / 2 - player.width / 2;
+	player.y = GAME_HEIGHT / 2 - player.height / 2;
+	player.speed = 5;
+	player.IsDraw = TRUE;
 
 	//無限ループ
 	while (1)
@@ -134,28 +179,6 @@ int WINAPI WinMain(
 			}
 		}
 
-		//キー入力
-		if (KeyDown(KEY_INPUT_W) == TRUE)
-		{
-			Y--;	//
-		}
-
-		if (KeyDown(KEY_INPUT_S) == TRUE)
-		{
-			Y++;	//
-		}
-		if (KeyDown(KEY_INPUT_A) == TRUE)
-		{
-			X--;	//
-		}
-
-		if (KeyDown(KEY_INPUT_D) == TRUE)
-		{
-			X++;	//
-		}
-
-		DrawCircle(X, Y, radius, GetColor(255, 255, 0), TRUE);
-
 		//FPSを描画
 		FPSDraw();
 
@@ -165,7 +188,8 @@ int WINAPI WinMain(
 		ScreenFlip();	//ダブルバッファリングした画像を描画
 	}
 
-
+	//終わるときの処理
+	DeleteGraph(player.handle);
 
 	//ＤＸライブラリ使用の終了処理
 	DxLib_End();
@@ -255,6 +279,13 @@ VOID PlayProc(VOID)
 /// </summary>
 VOID PlayDraw(VOID)
 {
+	//
+	if (player.IsDraw == TRUE)
+	{
+		//
+		DrawGraph(player.x, player.y, player.handle,TRUE);
+	}
+	
 	DrawString(0, 0, "プレイ画面", GetColor(0, 0, 0)); 
 	return;
 }
