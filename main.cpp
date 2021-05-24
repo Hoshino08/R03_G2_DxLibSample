@@ -6,7 +6,7 @@
 //構造体の定義
 
 //キャラクタの構造体
-struct CHARCTOR
+struct CHARACTOR
 {
 	int handle = -1;	//画像のハンドル（管理番号）
 	char path[255];		//画像の場所（パス）
@@ -28,7 +28,7 @@ GAME_SCENE OldGameScene;	//
 GAME_SCENE NextGameScene;	//
 
 //プレイヤー
-CHARCTOR player;
+CHARACTOR player;
 
 //画面の切り替え
 BOOL IsFadeOut = FALSE;	//フェードアウト
@@ -66,6 +66,8 @@ VOID ChangeProc(VOID);
 VOID ChangeDraw(VOID);
 
 VOID ChangeScene(GAME_SCENE scene);	//シーン切り替え
+
+VOID CollUpdate(CHARACTOR* chara);	//当たり判定の領域を更新
 
 // プログラムは WinMain から始まります
 //Windowsのプログラミング方法 = (WinAPI)で動いている！
@@ -121,10 +123,13 @@ int WINAPI WinMain(
 		return-1;		//エラー終了
 	}
 
-	//プレイヤーの初期化
+	//画像の幅と高さを設定
 	GetGraphSize(player.handle, &player.width, &player.height);
 
-	//
+	//当たり判定を更新する
+	CollUpdate(&player);	//プレイヤーの当たり判定のアドレス
+
+	//プレイヤーの初期化
 	player.x = GAME_WIDTH / 2 - player.width / 2;
 	player.y = GAME_HEIGHT / 2 - player.height / 2;
 	player.speed = 5;
@@ -271,6 +276,30 @@ VOID PlayProc(VOID)
 		//エンド画面に切り替え
 		ChangeScene(GAME_SCENE_END);
 	}
+
+	//
+	if (KeyDown(KEY_INPUT_UP) == TRUE)
+	{
+		player.y -= player.speed;
+	}
+
+	if (KeyDown(KEY_INPUT_DOWN) == TRUE)
+	{
+		player.y += player.speed;
+	}
+
+	if (KeyDown(KEY_INPUT_LEFT) == TRUE)
+	{
+		player.x -= player.speed;
+	}
+
+	if (KeyDown(KEY_INPUT_RIGHT) == TRUE)
+	{
+		player.x += player.speed;
+	}
+	//当たり判定を更新する
+	CollUpdate(&player);
+
 	return;
 }
 
@@ -284,6 +313,14 @@ VOID PlayDraw(VOID)
 	{
 		//
 		DrawGraph(player.x, player.y, player.handle,TRUE);
+
+		//
+		if (GAME_DEBUG == TRUE)
+		{
+			//
+			DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom,
+				GetColor(255, 0, 0), FALSE);
+		}
 	}
 	
 	DrawString(0, 0, "プレイ画面", GetColor(0, 0, 0)); 
@@ -424,6 +461,19 @@ VOID ChangeDraw(VOID)
 	DrawString(0, 0, "切り替え画面", GetColor(0, 0, 0));
 	return;
 
-};
+}
 
 
+/// <summary>
+///	当たり判定の領域更新
+/// </summary>
+/// <param name="scene">当たり判定の領域</param>
+VOID CollUpdate(CHARACTOR* chara)
+{
+	chara->coll.left = chara->x;
+	chara->coll.top = chara->y;
+	chara->coll.right = chara->x + chara->width;
+	chara->coll.bottom = chara->y + chara->height;
+
+	return;
+}
