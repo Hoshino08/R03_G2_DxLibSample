@@ -30,6 +30,9 @@ GAME_SCENE NextGameScene;	//
 //プレイヤー
 CHARACTOR player;
 
+//ゴール
+CHARACTOR Goal;
+
 //画面の切り替え
 BOOL IsFadeOut = FALSE;	//フェードアウト
 BOOL IsFadeIn = FALSE;	//フェードイン
@@ -67,7 +70,8 @@ VOID ChangeDraw(VOID);
 
 VOID ChangeScene(GAME_SCENE scene);	//シーン切り替え
 
-VOID CollUpdate(CHARACTOR* chara);	//当たり判定の領域を更新
+VOID CollUpdatePlayer(CHARACTOR* chara);	//当たり判定の領域を更新
+VOID CollUpdate(CHARACTOR* chara);			//当たり判定
 
 // プログラムは WinMain から始まります
 //Windowsのプログラミング方法 = (WinAPI)で動いている！
@@ -106,7 +110,7 @@ int WINAPI WinMain(
 	//ゲーム全体の初期化
 
 	//
-	strcpyDx(player.path, ".//Image//player.jpg");	//パスのコピー
+	strcpyDx(player.path, ".//Image//Player.png");	//パスのコピー
 	player.handle = LoadGraph(player.path);	//画像の読み込み
 
 	//
@@ -127,13 +131,43 @@ int WINAPI WinMain(
 	GetGraphSize(player.handle, &player.width, &player.height);
 
 	//当たり判定を更新する
-	CollUpdate(&player);	//プレイヤーの当たり判定のアドレス
+	CollUpdatePlayer(&player);	//プレイヤーの当たり判定のアドレス
 
 	//プレイヤーの初期化
 	player.x = GAME_WIDTH / 2 - player.width / 2;
 	player.y = GAME_HEIGHT / 2 - player.height / 2;
-	player.speed = 5;
+	player.speed = 500;
 	player.IsDraw = TRUE;
+
+	//ゴールの画像を読み込み
+	strcpyDx(Goal.path, ".//Image//Goal1.png");	//パスのコピー
+	Goal.handle = LoadGraph(Goal.path);	//画像の読み込み
+
+	//
+	if (Goal.handle == -1)
+	{
+		MessageBox(
+			GetMainWindowHandle(),		//メインのウィンドウハンドル
+			Goal.path,				//メッセージ本文
+			"画像読み込みエラー！",		//メッセージタイトル
+			MB_OK						//ボタン
+		);
+
+		DxLib_End();	//強制終了
+		return-1;		//エラー終了
+	}
+
+	//画像の幅と高さを設定
+	GetGraphSize(Goal.handle, &Goal.width, &Goal.height);
+
+	//当たり判定を更新する
+	CollUpdate(&Goal);	//プレイヤーの当たり判定のアドレス
+
+	//プレイヤーの初期化
+	Goal.x = GAME_WIDTH - Goal.width;
+	Goal.y = 0;
+	Goal.speed = 500;
+	Goal.IsDraw = TRUE;
 
 	//無限ループ
 	while (1)
@@ -195,6 +229,7 @@ int WINAPI WinMain(
 
 	//終わるときの処理
 	DeleteGraph(player.handle);
+	DeleteGraph(Goal.handle);
 
 	//ＤＸライブラリ使用の終了処理
 	DxLib_End();
@@ -280,25 +315,25 @@ VOID PlayProc(VOID)
 	//
 	if (KeyDown(KEY_INPUT_UP) == TRUE)
 	{
-		player.y -= player.speed;
+		player.y -= player.speed * fps.DeltaTime;
 	}
 
 	if (KeyDown(KEY_INPUT_DOWN) == TRUE)
 	{
-		player.y += player.speed;
+		player.y += player.speed * fps.DeltaTime;
 	}
 
 	if (KeyDown(KEY_INPUT_LEFT) == TRUE)
 	{
-		player.x -= player.speed;
+		player.x -= player.speed * fps.DeltaTime;
 	}
 
 	if (KeyDown(KEY_INPUT_RIGHT) == TRUE)
 	{
-		player.x += player.speed;
+		player.x += player.speed * fps.DeltaTime;
 	}
 	//当たり判定を更新する
-	CollUpdate(&player);
+	CollUpdatePlayer(&player);
 
 	return;
 }
@@ -323,6 +358,20 @@ VOID PlayDraw(VOID)
 		}
 	}
 	
+	if (Goal.IsDraw == TRUE)
+	{
+		//ゴールを描画
+		DrawGraph(Goal.x, Goal.y, Goal.handle, TRUE);
+
+		//画像を描画
+		if (GAME_DEBUG == TRUE)
+		{
+			//
+			DrawBox(Goal.coll.left, Goal.coll.top, Goal.coll.right, Goal.coll.bottom,
+				GetColor(255, 0, 0), FALSE);
+		}
+	}
+
 	DrawString(0, 0, "プレイ画面", GetColor(0, 0, 0)); 
 	return;
 }
@@ -468,10 +517,26 @@ VOID ChangeDraw(VOID)
 ///	当たり判定の領域更新
 /// </summary>
 /// <param name="scene">当たり判定の領域</param>
+VOID CollUpdatePlayer(CHARACTOR* chara)
+{
+	chara->coll.left = chara->x;
+	chara->coll.top = chara->y;
+
+	chara->coll.right = chara->x + chara->width;
+	chara->coll.bottom = chara->y + chara->height;
+
+	return;
+}
+
+/// <summary>
+///	当たり判定の領域更新
+/// </summary>
+/// <param name="scene">当たり判定の領域</param>
 VOID CollUpdate(CHARACTOR* chara)
 {
 	chara->coll.left = chara->x;
 	chara->coll.top = chara->y;
+
 	chara->coll.right = chara->x + chara->width;
 	chara->coll.bottom = chara->y + chara->height;
 
