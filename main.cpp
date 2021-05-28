@@ -21,11 +21,29 @@ struct CHARACTOR
 	BOOL IsDraw = FALSE;	//画像が描画できる？
 };
 
+
+//動画の構造体
+struct MOVIE
+{
+	int handle = -1;	//動画のハンドル
+	char path[255];		//動画のパス
+
+	int x;			//X位置
+	int y;			//Y位置
+	int width;		//幅
+	int height;		//高さ
+
+	int Volume = 255;	//ボリューム0～255
+};
+
 //グローバル変数
 //
 GAME_SCENE GameScene;		//
 GAME_SCENE OldGameScene;	//
 GAME_SCENE NextGameScene;	//
+
+//プレイ動画の背景
+MOVIE playMovie;
 
 //プレイヤー
 CHARACTOR player;
@@ -112,7 +130,30 @@ int WINAPI WinMain(
 	//ゲーム全体の初期化
 
 	//
-	strcpyDx(player.path, ".//Image//Player.png");	//パスのコピー
+	strcpyDx(playMovie.path, ".\\MOVIE\\Milk.mp4");
+	playMovie.handle = LoadGraph(playMovie.path);	//画像の読み込み
+
+	//プレイ動画の背景の読み込み
+
+	//
+	if (playMovie.handle == -1)
+	{
+		MessageBox(
+			GetMainWindowHandle(),		//メインのウィンドウハンドル
+			playMovie.path,				//メッセージ本文
+			"動画読み込みエラー！",		//メッセージタイトル
+			MB_OK						//ボタン
+		);
+
+		DxLib_End();	//強制終了
+		return-1;		//エラー終了
+	}
+
+	//
+	GetGraphSize(playMovie.handle, &playMovie.width, &playMovie.height);
+
+	//
+	strcpyDx(player.path, ".\\Image\\Player.png");	//パスのコピー
 	player.handle = LoadGraph(player.path);	//画像の読み込み
 
 	//
@@ -147,7 +188,7 @@ int WINAPI WinMain(
 	CollUpdatePlayer(&player);	//プレイヤーの当たり判定のアドレス
 
 	//ゴールの画像を読み込み
-	strcpyDx(Goal.path, ".//Image//Goal1.png");	//パスのコピー
+	strcpyDx(Goal.path, ".\\Image\\Goal1.png");	//パスのコピー
 	Goal.handle = LoadGraph(Goal.path);	//画像の読み込み
 
 	//
@@ -173,9 +214,9 @@ int WINAPI WinMain(
 	*/
 
 
-	//プレイヤーの初期化
-	Goal.x = GAME_WIDTH - Goal.width;
-	Goal.y = 0;
+	//go-ruの初期化
+	Goal.x = 0;
+	Goal.y = 20;
 	Goal.speed = 500;
 	Goal.IsDraw = TRUE;
 
@@ -243,6 +284,7 @@ int WINAPI WinMain(
 	}
 
 	//終わるときの処理
+	DeleteGraph(playMovie.handle);
 	DeleteGraph(player.handle);
 	DeleteGraph(Goal.handle);
 
@@ -373,6 +415,16 @@ VOID PlayProc(VOID)
 VOID PlayDraw(VOID)
 {
 	//
+	if (GetMovieStateToGraph(playMovie.handle) == 0)
+	{
+		//再生する
+		SeekMovieToGraph(playMovie.handle, 0);	//シークバーを最初に戻す
+		PlayMovieToGraph(playMovie.handle);		//動画の再生
+	}
+	//動画を描画(画面に合わせて画像を引き伸ばす)
+	DrawExtendGraph(0, 0, GAME_WIDTH, GAME_HEIGHT, playMovie.handle, TRUE);
+
+	//ぷれいやーを描画
 	if (player.IsDraw == TRUE)
 	{
 		//
@@ -428,6 +480,8 @@ VOID EndProc(VOID)
 /// </summary>
 VOID EndDraw(VOID)
 {
+	DrawString(0, 0, "エンド画面", GetColor(0, 0, 0));
+	
 	if (KeyClick(KEY_INPUT_RETURN) == TRUE)
 	{
 		//シーン切り替え
