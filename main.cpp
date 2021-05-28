@@ -73,6 +73,8 @@ VOID ChangeScene(GAME_SCENE scene);	//シーン切り替え
 VOID CollUpdatePlayer(CHARACTOR* chara);	//当たり判定の領域を更新
 VOID CollUpdate(CHARACTOR* chara);			//当たり判定
 
+BOOL OnCollRect(RECT a, RECT b);		//矩形と矩形の当たり判定
+
 // プログラムは WinMain から始まります
 //Windowsのプログラミング方法 = (WinAPI)で動いている！
 //DxLibは、DirectXという、ゲームプログラミングをかんたんに使える仕組み
@@ -316,6 +318,7 @@ VOID Play(VOID)
 /// </summary>
 VOID PlayProc(VOID)
 {
+	/*
 	if (KeyClick(KEY_INPUT_RETURN) == TRUE)
 	{
 		//シーン切り替え
@@ -324,6 +327,7 @@ VOID PlayProc(VOID)
 		//エンド画面に切り替え
 		ChangeScene(GAME_SCENE_END);
 	}
+	*/
 
 	//
 	if (KeyDown(KEY_INPUT_UP) == TRUE)
@@ -352,6 +356,14 @@ VOID PlayProc(VOID)
 	//ゴールの当たり判定を更新する
 	CollUpdate(&Goal);
 
+	//プレイヤーがゴールに当たった時は
+	if (OnCollRect(player.coll, Goal.coll) == TRUE)
+	{
+		//エンド画面に切り替え
+		ChangeScene(GAME_SCENE_END);
+	}
+
+	//処理を強制終了
 	return;
 }
 
@@ -560,6 +572,12 @@ VOID CollUpdate(CHARACTOR* chara)
 	return;
 }
 
+/// <summary>
+/// 矩形と矩形の当たり判定
+/// </summary>
+/// <param name="a">矩形a</param>
+/// <param name="b">矩形b</param>
+/// <returns></returns>
 BOOL OnCollRect(RECT a, RECT b)
 {
 	if (
