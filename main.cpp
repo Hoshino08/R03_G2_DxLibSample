@@ -130,14 +130,19 @@ int WINAPI WinMain(
 	//画像の幅と高さを設定
 	GetGraphSize(player.handle, &player.width, &player.height);
 
+	/*
 	//当たり判定を更新する
 	CollUpdatePlayer(&player);	//プレイヤーの当たり判定のアドレス
+	*/
 
 	//プレイヤーの初期化
 	player.x = GAME_WIDTH / 2 - player.width / 2;
 	player.y = GAME_HEIGHT / 2 - player.height / 2;
 	player.speed = 500;
 	player.IsDraw = TRUE;
+
+	//当たり判定を更新する
+	CollUpdatePlayer(&player);	//プレイヤーの当たり判定のアドレス
 
 	//ゴールの画像を読み込み
 	strcpyDx(Goal.path, ".//Image//Goal1.png");	//パスのコピー
@@ -160,14 +165,22 @@ int WINAPI WinMain(
 	//画像の幅と高さを設定
 	GetGraphSize(Goal.handle, &Goal.width, &Goal.height);
 
+	/*
 	//当たり判定を更新する
 	CollUpdate(&Goal);	//プレイヤーの当たり判定のアドレス
+	*/
+
 
 	//プレイヤーの初期化
 	Goal.x = GAME_WIDTH - Goal.width;
 	Goal.y = 0;
 	Goal.speed = 500;
 	Goal.IsDraw = TRUE;
+
+	/*
+	//当たり判定を更新する
+	CollUpdate(&Goal);	//プレイヤーの当たり判定のアドレス
+	*/
 
 	//無限ループ
 	while (1)
@@ -332,8 +345,12 @@ VOID PlayProc(VOID)
 	{
 		player.x += player.speed * fps.DeltaTime;
 	}
+
 	//当たり判定を更新する
 	CollUpdatePlayer(&player);
+
+	//ゴールの当たり判定を更新する
+	CollUpdate(&Goal);
 
 	return;
 }
@@ -542,3 +559,21 @@ VOID CollUpdate(CHARACTOR* chara)
 
 	return;
 }
+
+BOOL OnCollRect(RECT a, RECT b)
+{
+	if (
+		a.left < b.right
+		&& a.right > b.left
+		&& a.top < b.bottom
+		&& a.bottom > b.top
+		)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
